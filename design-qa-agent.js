@@ -79,7 +79,36 @@ function readManifest() {
 // If there are no issues, "pass" should be true and "findings" empty.
 // ============================================================
 function buildPrompt(diff, manifest) {
-  return `TODO: write your prompt here.
+  return `You are reviewing a code diff for compliance with a design system manifest.
+
+<manifest>
+{{MANIFEST}}
+</manifest>
+
+<diff>
+{{DIFF}}
+</diff>
+
+Compare the diff against the manifest. An issue is a change in the diff that breaks a rule stated in the manifest. Do not report anything else: no bugs, style preferences, performance, or suggestions that the manifest does not mention. Only added or modified lines count. Ignore removed lines and unchanged context.
+
+For each rule in the manifest, check whether any added or modified line violates it. If the manifest does not cover something, it is not an issue.
+
+For every issue, give:
+- "file": the file path from the diff
+- "line": the line number or range of the offending code
+- "issue": one sentence naming the manifest rule that was broken
+- "reasoning": a short explanation of why this line breaks that rule, quoting the relevant manifest text and the offending code
+
+Set "pass" to false if there is at least one issue, and true if there are none. If there are no issues, "findings" must be an empty array.
+
+Respond with valid JSON only, in exactly this shape, with no text, markdown or code fences before or after it:
+
+{
+  "pass": true or false,
+  "findings": [
+    { "file": "...", "line": "...", "issue": "...", "reasoning": "..." }
+  ]
+}`;
 
 Manifest:
 ${manifest}
