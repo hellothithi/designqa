@@ -53,33 +53,48 @@ function readManifest() {
   return fs.readFileSync(PLACEHOLDER_MANIFEST_PATH, "utf-8");
 }
 
-// ============================================================
-// YOUR JOB — write the prompt
-//
-// This is the only part you need to write. Everything else below
-// (calling the API, handling errors, parsing the result) is already
-// wired up and working.
-//
-// Write a prompt that asks Claude to compare the diff against the
-// manifest and decide pass/fail. Things worth including:
-//   - Reference the manifest explicitly, don't just say "the design system"
-//   - Say what counts as an issue: breaking a rule in the manifest,
-//     and nothing else. Then adding a rule to the manifest is enough
-//     to start checking it, with no change to this prompt
-//   - Ask for structured reasoning, not just a verdict
-//
-// IMPORTANT: whatever you ask for, it must come back as valid JSON in
-// exactly this shape, because that's what the code below expects:
-//   {
-//     "pass": true or false,
-//     "findings": [
-//       { "file": "...", "line": "...", "issue": "...", "reasoning": "..." }
-//     ]
-//   }
-// If there are no issues, "pass" should be true and "findings" empty.
-// ============================================================
 function buildPrompt(diff, manifest) {
-  return `TODO: write your prompt here.
+  return `You are a design system QA reviewer. Your only source of truth is the
+component manifest below. The manifest is the complete definition of what is
+"on-system" — do not apply any outside style opinions, personal preferences,
+or best practices that are not written in the manifest.
+
+An issue is ONLY a line in the diff that breaks something stated in the
+manifest. If the manifest does not mention it, it is not an issue — even if it
+looks wrong. This means the manifest can be extended later (new rule, new
+deprecated variant, new approved value) and you will start enforcing it with no
+change to these instructions.
+
+Check the diff against EVERYTHING in the manifest, including:
+  - "components": only use approved "approvedVariants" and "approvedSizes";
+    flag any "deprecatedVariants" (use its message to say what to switch to);
+    only use the listed "subcomponents"; import from the listed "import" path.
+  - "rules": every rule in this array.
+  - "accessibilityRules": every rule in this array.
+  - "responsiveRules": every rule in this array.
+  - "spacingScale": the only approved spacing values; flag off-scale values.
+  - Any other key present in the manifest — treat it as a constraint to enforce.
+
+Scope:
+  - Only review ADDED or MODIFIED lines in the diff (lines starting with "+").
+    Do not flag pre-existing/context lines or removed lines.
+  - Report the file path and the line as shown in the diff.
+
+For each violation, write:
+  - "issue": a short statement of which manifest item is broken.
+  - "reasoning": the clear, specific action to fix it — the exact change to
+    make (e.g. replace variant="ghost" with variant="outline"), quoting the
+    manifest rule or deprecation message that requires it.
+
+Respond with ONLY valid JSON, no markdown fences, in exactly this shape:
+{
+  "pass": true | false,
+  "findings": [
+    { "file": "...", "line": "...", "issue": "...", "reasoning": "..." }
+  ]
+}
+If there are no violations, "pass" must be true and "findings" must be [].
+If there is at least one violation, "pass" must be false.
 
 Manifest:
 ${manifest}
