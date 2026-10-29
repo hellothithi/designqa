@@ -88,16 +88,18 @@ The ONLY thing that counts as an issue is breaking a rule that is written in the
 
 For every rule that does NOT pass, always explain why it fails and point to the specific problem you found: which file and line, what the diff did, and which manifest rule it violates.
 
-Keep the report numbered, short, and easy to read: one entry per failing rule, in the "issue"/"reasoning" fields, phrased in a single tight sentence each — no filler, no restating rules that passed.
+Keep the report short and easy to read: one entry per failing rule, in the "issue"/"reasoning" fields, phrased in a single tight sentence each — no filler, no restating rules that passed.
 
-Return ONLY valid JSON in exactly this shape:
+Do your rule-by-rule evaluation silently. Your entire response must be a single raw JSON object: no markdown code fences, no text, summary, or explanation before or after it. Any reasoning belongs inside the "reasoning" fields.
+
+Return exactly this shape:
 {
   "pass": true or false,
   "findings": [
     { "file": "...", "line": "...", "issue": "...", "reasoning": "..." }
   ]
 }
-"pass" is true only if every rule passes; in that case "findings" must be empty. If any rule does not pass, "pass" is false and "findings" lists one numbered entry per failing rule.
+"pass" is true only if every rule passes; in that case "findings" must be empty. If any rule does not pass, "pass" is false and "findings" lists one entry per failing rule.
 
 Manifest:
 ${manifest}
@@ -145,8 +147,10 @@ async function checkDesignCompliance(diff, manifest) {
   const text = data.content?.[0]?.text ?? "";
 
   try {
-    const cleaned = text.replace(/```json\n?|```\n?/g, "").trim();
-    const result = JSON.parse(cleaned);
+    // Tolerate stray prose around the JSON: prefer a fenced block, else the outermost braces.
+    const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+    const cleaned = (fenced ? fenced[1] : text).trim();
+    const result = JSON.parse(cleaned.slice(cleaned.indexOf("{"), cleaned.lastIndexOf("}") + 1));
     return {
       pass: result.pass === true,
       findings: Array.isArray(result.findings) ? result.findings : [],
