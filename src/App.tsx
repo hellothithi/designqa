@@ -37,8 +37,12 @@ function App() {
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground">
               Shop
             </a>
-            <Button variant="ghost">Sign in</Button>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="ghost"
+            >
+              Sign in
+            </Button>
+            <Button variant="outline" size="sm" aria-label="Cart">
               <ShoppingCart />
             </Button>
           </nav>
@@ -57,15 +61,15 @@ function App() {
           </p>
           <div className="flex items-center gap-sm pt-sm">
             <Button size="lg">Shop now</Button>
-            <button className="h-10 rounded-md px-8 text-sm font-medium border border-border bg-background hover:bg-accent">
+            <Button variant="outline" size="lg">
               View collection
-            </button>
+            </Button>
           </div>
-          <p style={{ color: "#6b7280" }} className="text-sm pt-xs">
+          <p className="text-sm text-muted-foreground pt-xs">
             Trusted by over 2 million shoppers worldwide
           </p>
         </div>
-        <div className="flex aspect-square w-112 items-center justify-center rounded-lg bg-secondary">
+        <div className="flex aspect-square w-full max-w-96 items-center justify-center rounded-lg bg-secondary">
           <ShoppingBag
             className="size-24 text-muted-foreground"
             strokeWidth={1}
@@ -73,7 +77,7 @@ function App() {
         </div>
       </section>
 
-      <section className="px-6 py-[37px] grid grid-cols-3 gap-md max-w-5xl mx-auto">
+      <section className="px-6 py-lg grid grid-cols-1 md:grid-cols-3 gap-md max-w-5xl mx-auto">
         {categories.map((category) => (
           <Card key={category.title}>
             <CardHeader>
@@ -98,6 +102,7 @@ function App() {
         <div className="flex flex-col sm:flex-row items-center gap-xs">
           <input
             type="email"
+            aria-label="Email address"
             placeholder="Email address"
             className="h-10 rounded-md border border-border bg-background px-sm text-sm"
           />

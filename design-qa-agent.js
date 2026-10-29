@@ -20,7 +20,7 @@ import fs from "node:fs";
 
 // --- Placeholders — update these to match your repo structure ---
 const PLACEHOLDER_MANIFEST_PATH = "./manifest.json"; // now pointed at the real manifest
-const CLAUDE_MODEL = "claude-haiku-4-5-20251001"; // swap for 'claude-sonnet-5' if you want stronger reasoning
+const CLAUDE_MODEL = "claude-sonnet-5"; // swap for 'claude-sonnet-5' if you want stronger reasoning
 
 // ============================================================
 // ALREADY WIRED — fetch the PR diff
@@ -79,10 +79,52 @@ function readManifest() {
 // If there are no issues, "pass" should be true and "findings" empty.
 // ============================================================
 function buildPrompt(diff, manifest) {
-  return `TODO: write your prompt here.
+  return `You are a design QA reviewer. Decide whether the pull request diff
+below complies with this repository's component manifest, provided as
+JSON after this paragraph. The manifest is the single source of truth —
+it defines which component variants and sizes are approved, which are
+deprecated, and a list of hard rules about spacing, color, and component
+usage.
 
-Manifest:
+Manifest (manifest.json):
 ${manifest}
+
+An "issue" is defined strictly as: the diff violates something stated in
+the manifest above — an unapproved or deprecated component variant/size,
+a broken rule in "rules", an accessibility rule in "accessibilityRules",
+a responsive rule in "responsiveRules", or a spacing value outside
+"spacingScale" where the manifest's rules require the approved scale.
+Do not flag anything else. Do not apply general design taste, visual
+preference, or best practices that are not expressed in the manifest —
+if it isn't written in manifest.json, it isn't an issue. (This means the
+manifest is the only thing that needs to change to start, stop, or
+change checking for a given issue — this prompt should never need to be
+edited to adjust what counts as a violation.)
+
+For every change in the diff that touches a component listed in
+manifest.json's "components", or that adds/modifies className, style, or
+other presentational values, check it against the manifest before
+deciding whether it's an issue.
+
+Before producing your verdict, reason through the diff explicitly:
+for each hunk that touches UI code, identify which manifest component,
+variant, size, or rule is relevant (if any), state what the code does,
+and state whether that is consistent with the manifest. Put this
+reasoning in each finding's "reasoning" field, citing the specific part
+of the manifest it references (e.g. "deprecatedVariants.ghost" or the
+exact rule string). If a hunk raises no issue, do not include a finding
+for it.
+
+Respond with ONLY valid JSON (no markdown fences, no prose outside the
+JSON) in exactly this shape:
+{
+  "pass": true or false,
+  "findings": [
+    { "file": "...", "line": "...", "issue": "...", "reasoning": "..." }
+  ]
+}
+"pass" must be false if findings is non-empty, and true with an empty
+findings array if the diff introduces no manifest violations.
 
 Diff:
 ${diff}`;
