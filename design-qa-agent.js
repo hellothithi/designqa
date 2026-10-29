@@ -53,31 +53,6 @@ function readManifest() {
   return fs.readFileSync(PLACEHOLDER_MANIFEST_PATH, "utf-8");
 }
 
-// ============================================================
-// YOUR JOB — write the prompt
-//
-// This is the only part you need to write. Everything else below
-// (calling the API, handling errors, parsing the result) is already
-// wired up and working.
-//
-// Write a prompt that asks Claude to compare the diff against the
-// manifest and decide pass/fail. Things worth including:
-//   - Reference the manifest explicitly, don't just say "the design system"
-//   - Say what counts as an issue: breaking a rule in the manifest,
-//     and nothing else. Then adding a rule to the manifest is enough
-//     to start checking it, with no change to this prompt
-//   - Ask for structured reasoning, not just a verdict
-//
-// IMPORTANT: whatever you ask for, it must come back as valid JSON in
-// exactly this shape, because that's what the code below expects:
-//   {
-//     "pass": true or false,
-//     "findings": [
-//       { "file": "...", "line": "...", "issue": "...", "reasoning": "..." }
-//     ]
-//   }
-// If there are no issues, "pass" should be true and "findings" empty.
-// ============================================================
 function buildPrompt(diff, manifest) {
   return `You are a design system QA reviewer. Your only source of truth is the
 component manifest below. The manifest is the complete definition of what is
