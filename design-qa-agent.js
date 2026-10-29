@@ -79,13 +79,55 @@ function readManifest() {
 // If there are no issues, "pass" should be true and "findings" empty.
 // ============================================================
 function buildPrompt(diff, manifest) {
-  return `TODO: write your prompt here.
+  return `You are reviewing a code diff for compliance with a design system manifest.
 
-Manifest:
+<manifest>
 ${manifest}
+</manifest>
 
-Diff:
-${diff}`;
+<diff>
+${diff}
+</diff>
+
+## Your task
+
+Check every added or changed line in the diff against the rules in the manifest above. The manifest is the only source of truth.
+
+## What counts as an issue
+
+An issue is a line in the diff that breaks a specific rule written in the manifest. Nothing else counts.
+
+- Do NOT flag general code quality, style preferences, best practices, possible bugs, or anything the manifest does not explicitly cover, even if you think it is a problem.
+- Do NOT flag lines that were removed or left unchanged. Only check added or modified lines (lines starting with "+" in the diff).
+- If a rule is ambiguous, or you can't tell from the diff whether it is broken, do not flag it.
+- Every finding must be traceable to a specific rule in the manifest.
+
+## How to work
+
+1. Read the manifest and list its rules for yourself.
+2. Go through each file in the diff and check each added or changed line against every rule that applies.
+3. For each violation, record the file, the line number in the new version of the file (from the diff hunk headers), what was broken, and your reasoning.
+
+## Output format
+
+Respond with ONLY a valid JSON object. No markdown code fences, no text before or after it. Use exactly this shape:
+
+{
+  "pass": true or false,
+  "findings": [
+    {
+      "file": "path/to/file as shown in the diff",
+      "line": "line number in the new file, as a string (e.g. \\"42\\" or \\"42-45\\")",
+      "issue": "One sentence naming the manifest rule that was broken and how",
+      "reasoning": "Quote or paraphrase the manifest rule, quote the offending code, and explain why the code breaks the rule"
+    }
+  ]
+}
+
+Rules for the output:
+- "pass" is true if and only if "findings" is empty.
+- If there are no violations, return {"pass": true, "findings": []}.
+- All values must be strings except "pass", which is a boolean.`;
 }
 
 // ============================================================
